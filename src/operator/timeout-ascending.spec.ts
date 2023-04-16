@@ -18,7 +18,7 @@ describe('RxJS', () => {
                     throw 'error';
                 } else { throw err }
             })));
-        const expectedMarbles = '1200ms (#)';
+        const expectedMarbles = '900ms (#)';
         testScheduler.run(({ expectObservable }) => {
             expectObservable(y).toBe(
                 expectedMarbles,
@@ -29,7 +29,7 @@ describe('RxJS', () => {
 
     it('returns simple value', () => {
         const y = of(2).pipe(delay(1500), timeoutAscending(300, 4));
-        const expectedMarbles = '3900ms (a|)';
+        const expectedMarbles = '3600ms (a|)';
         const expectedValues = { a: 2 };
         testScheduler.run(({ expectObservable }) => {
             expectObservable(y).toBe(
