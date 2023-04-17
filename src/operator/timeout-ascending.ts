@@ -2,12 +2,12 @@ import { Observable, throwError, timeout } from 'rxjs';
 
 export class CustomTimeoutError extends Error {
   constructor() {
-    super('Timeout occured');
+    super('Timeout occurred');
     this.name = 'CustomTimeoutError';
   }
 }
 
-export function timeoutAscending(delay: number, retries: number = 1) {
+export function timeoutAscending(delayMs: number, retries: number = 1) {
   if (retries < 1) {
     throw new TypeError('Wrong value for retries provided (required >=1)');
   }
@@ -20,31 +20,34 @@ export function timeoutAscending(delay: number, retries: number = 1) {
         with: () => throwError(() => new CustomTimeoutError())
       });
       const observer = {
-        next(value: T) { subscriber.next(value); },
+        next(value: T) {
+          subscriber.next(value);
+        },
         error(error: any) {
           if (error instanceof CustomTimeoutError) {
             if (retried < retries) {
-              console.log(`retry ${retried}. with ${delay * Math.pow(2, retried)}ms`);
+              console.warn(`Timed out. Retry ${retried}. with ${delayMs * Math.pow(2, retried)}ms`);
               subscription.unsubscribe();
               subscription = source
-                .pipe(timeout(config(delay * Math.pow(2, retried))))
+                .pipe(timeout(config(delayMs * Math.pow(2, retried))))
                 .subscribe(observer);
               ++retried;
             } else {
-              console.log(`Timeout error after ${retries} retries.`);
+              console.warn(`Timeout error after ${retries} retries.`);
               subscriber.error(error);
             }
           } else {
-            console.log('other error!');
             subscriber.error(error);
           }
         },
-        complete() { subscriber.complete(); }
+        complete() {
+          subscriber.complete();
+        }
       }
-      console.log(`retry ${retried}. with ${delay}ms`);
+      console.log(`First attempt with ${delayMs}ms`);
       let subscription = source
         .pipe(
-          timeout(config(delay)))
+          timeout(config(delayMs)))
         .subscribe(observer);
 
       return () => subscription.unsubscribe();
